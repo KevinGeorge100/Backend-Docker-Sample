@@ -396,14 +396,32 @@
     async function loadHealth() {
       try {
         const res = await fetch('/health');
-        const data = await res.json();
-        document.getElementById('serverStatus').textContent = data.status;
-        document.getElementById('serverUptime').textContent = formatUptime(data.uptime);
-        document.getElementById('serverTimestamp').textContent = new Date(data.timestamp).toLocaleString();
+        
+        // Check if response is JSON (it won't be on GitHub Pages)
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const data = await res.json();
+          updateStatus(data);
+        } else {
+          // Fallback for Static Demo
+          console.warn("Static hosting detected. Using mock data.");
+          updateStatus({
+            status: "STATIC DEMO",
+            uptime: (Date.now() - 1700000000000) / 1000,
+            timestamp: new Date().toISOString()
+          });
+          document.getElementById('serverStatus').style.color = '#fbbf24'; // Amber for demo
+        }
       } catch {
         document.getElementById('serverStatus').textContent = 'DOWN';
         document.getElementById('serverStatus').style.color = '#ef4444';
       }
+    }
+
+    function updateStatus(data) {
+      document.getElementById('serverStatus').textContent = data.status;
+      document.getElementById('serverUptime').textContent = formatUptime(data.uptime);
+      document.getElementById('serverTimestamp').textContent = new Date(data.timestamp).toLocaleString();
     }
 
     function formatUptime(seconds) {
@@ -421,8 +439,22 @@
     async function checkHealth() {
       try {
         const res = await fetch('/health');
-        const data = await res.json();
-        showModal('🩺 Health Check Response', JSON.stringify(data, null, 2));
+        const contentType = res.headers.get("content-type");
+        
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const data = await res.json();
+          showModal('🩺 Health Check Response', JSON.stringify(data, null, 2));
+        } else {
+          showModal('⚠️ Static Hosting Detected', 
+            'The backend API is not available on GitHub Pages (static hosting).\n\n' +
+            'On a real server, this would return:\n' +
+            JSON.stringify({ 
+              status: "OK", 
+              uptime: 1234.56, 
+              timestamp: new Date().toISOString() 
+            }, null, 2)
+          );
+        }
       } catch (err) {
         showModal('❌ Error', err.message);
       }
@@ -431,8 +463,22 @@
     async function fetchAPI() {
       try {
         const res = await fetch('/api/antigravity');
-        const data = await res.json();
-        showModal('🔌 API Response — /api/antigravity', JSON.stringify(data, null, 2));
+        const contentType = res.headers.get("content-type");
+
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const data = await res.json();
+          showModal('🔌 API Response — /api/antigravity', JSON.stringify(data, null, 2));
+        } else {
+            showModal('⚠️ Static Hosting Detected', 
+            'The backend API is not available on GitHub Pages (static hosting).\n\n' +
+            'On a real server, this would return:\n' +
+            JSON.stringify({ 
+              message: "Hello from Antigravity Backend!", 
+              version: "1.0.0",
+              endpoints: ["/health", "/api/antigravity"]
+            }, null, 2)
+          );
+        }
       } catch (err) {
         showModal('❌ Error', err.message);
       }
