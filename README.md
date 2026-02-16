@@ -49,6 +49,19 @@ npm start
 | `PORT`     | `5000`        | Server port           |
 | `NODE_ENV` | `development` | Node environment mode |
 
+### 📡 Live Server Status
+[Live Demo](https://kevingeorge100.github.io/Backend-Docker-Sample/) (Static Frontend Only)
+
+## Deployment to GitHub Pages
+
+This project includes a static landing page in the `public/` directory. To deploy it to GitHub Pages:
+
+```bash
+npm run deploy
+```
+
+**Note:** GitHub Pages hosts static content only. The backend API endpoints (`/health`, `/api`) will not function on this static deployment. For full functionality, deploy to a service like Render, Railway, or AWS.
+
 ## 🐳 Docker Ready
 
 This project is structured for easy containerization. Add a `Dockerfile` and you're good to go!
