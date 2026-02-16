@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kevin George — Antigravity Backend</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0a0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===== Animated Background ===== */
+    .bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ===== Floating Orbs ===== */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+      animation: float 8s ease-in-out infinite;
+      z-index: 0;
+    }
+    .orb-1 { width: 400px; height: 400px; background: #6366f1; top: -100px; left: -100px; animation-delay: 0s; }
+    .orb-2 { width: 350px; height: 350px; background: #ec4899; bottom: -80px; right: -80px; animation-delay: 2s; }
+    .orb-3 { width: 300px; height: 300px; background: #06b6d4; top: 50%; left: 60%; animation-delay: 4s; }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -20px) scale(1.05); }
+      66% { transform: translate(-20px, 15px) scale(0.95); }
+    }
+
+    /* ===== Layout ===== */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== Nav ===== */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 40px;
+    }
+    .logo {
+      font-weight: 800;
+      font-size: 1.25rem;
+      background: linear-gradient(135deg, #6366f1, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: #9ca3af;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+      50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+    }
+
+    /* ===== Hero ===== */
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      gap: 24px;
+      padding: 40px 0;
+    }
+    .greeting {
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: #9ca3af;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.2s;
+    }
+    .hero-name {
+      font-size: clamp(2.5rem, 7vw, 5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #ffffff 0%, #6366f1 50%, #ec4899 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: fadeUp 0.8s ease forwards 0.4s, shimmer 4s linear infinite;
+      opacity: 0;
+    }
+    @keyframes shimmer {
+      0% { background-position: 0% center; }
+      100% { background-position: 200% center; }
+    }
+    .hero-tagline {
+      font-size: 1.2rem;
+      color: #9ca3af;
+      max-width: 500px;
+      line-height: 1.7;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.6s;
+    }
+    .hero-tagline .highlight {
+      color: #6366f1;
+      font-weight: 600;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== Interactive Buttons ===== */
+    .actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 8px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.8s;
+    }
+    .btn {
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .btn:hover::after { opacity: 1; }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+    }
+    .btn-outline {
+      background: transparent;
+      color: #e0e0e0;
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+    }
+    .btn-outline:hover {
+      border-color: #6366f1;
+      color: #6366f1;
+      transform: translateY(-2px);
+    }
+
+    /* ===== Cards Section ===== */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 40px 0;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 1s;
+    }
+    .card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 28px;
+      transition: all 0.4s ease;
+      cursor: default;
+    }
+    .card:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    }
+    .card-icon {
+      font-size: 2rem;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .card h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .card p {
+      font-size: 0.9rem;
+      color: #9ca3af;
+      line-height: 1.6;
+    }
+
+    /* ===== Live Status Panel ===== */
+    .status-panel {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin: 20px 0 40px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 1.2s;
+    }
+    .status-panel h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #6366f1;
+      margin-bottom: 16px;
+    }
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 0.9rem;
+    }
+    .status-row:last-child { border: none; }
+    .status-label { color: #9ca3af; }
+    .status-value { color: #fff; font-weight: 600; font-family: 'Courier New', monospace; }
+    .status-value.green { color: #22c55e; }
+
+    /* ===== Footer ===== */
+    footer {
+      text-align: center;
+      padding: 24px 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      color: #4b5563;
+      font-size: 0.85rem;
+    }
+    footer a {
+      color: #6366f1;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    footer a:hover { color: #ec4899; }
+
+    /* ===== Mouse follower ===== */
+    .cursor-glow {
+      position: fixed;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99,102,241,0.15), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      transform: translate(-50%, -50%);
+      transition: left 0.15s ease, top 0.15s ease;
+    }
+  </style>
+</head>
+<body>
+  <!-- Floating Orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- Cursor Glow -->
+  <div class="cursor-glow" id="cursorGlow"></div>
+
+  <div class="container">
+    <!-- Nav -->
+    <nav>
+      <div class="logo">⚡ Antigravity</div>
+      <div class="nav-status">
+        <div class="status-dot"></div>
+        <span>System Online</span>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+      <p class="greeting">Welcome to my backend</p>
+      <h1 class="hero-name">Hi, I'm Kevin George</h1>
+      <p class="hero-tagline">
+        Building production-ready backends with
+        <span class="highlight">Node.js</span> &
+        <span class="highlight">Express</span> for DevOps training.
+      </p>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="checkHealth()">🩺 Check Health</button>
+        <button class="btn btn-outline" onclick="fetchAPI()">🔌 Fetch API</button>
+      </div>
+    </section>
+
+    <!-- Feature Cards -->
+    <div class="cards">
+      <div class="card">
+        <span class="card-icon">🐳</span>
+        <h3>Docker Ready</h3>
+        <p>Structured for easy containerization with minimal dependencies and clean separation of concerns.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">📊</span>
+        <h3>Health Monitoring</h3>
+        <p>Built-in health check endpoint for load balancers, orchestrators, and uptime monitors.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🛡️</span>
+        <h3>Error Handling</h3>
+        <p>Centralized error middleware with structured JSON responses and environment-aware stack traces.</p>
+      </div>
+    </div>
+
+    <!-- Live Status Panel -->
+    <div class="status-panel">
+      <h3>📡 Live Server Status</h3>
+      <div class="status-row">
+        <span class="status-label">Status</span>
+        <span class="status-value green" id="serverStatus">Loading...</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Uptime</span>
+        <span class="status-value" id="serverUptime">—</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Timestamp</span>
+        <span class="status-value" id="serverTimestamp">—</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Port</span>
+        <span class="status-value">5000</span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      Built with ❤️ by <a href="#">Kevin George</a> · Antigravity Backend v1.0.0
+    </footer>
+  </div>
+
+  <!-- ===== Response Modal ===== -->
+  <div id="modal" style="display:none; position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.6); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
+    <div style="background:#16161e; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:32px; max-width:520px; width:90%; position:relative;">
+      <button onclick="closeModal()" style="position:absolute; top:12px; right:16px; background:none; border:none; color:#9ca3af; font-size:1.4rem; cursor:pointer;">&times;</button>
+      <h3 id="modalTitle" style="font-size:1rem; color:#6366f1; margin-bottom:16px;">Response</h3>
+      <pre id="modalBody" style="background:rgba(0,0,0,0.3); border-radius:10px; padding:20px; color:#e0e0e0; font-size:0.85rem; overflow-x:auto; line-height:1.6; white-space:pre-wrap; font-family:'Courier New',monospace;"></pre>
+    </div>
+  </div>
+
+  <script>
+    // ===== Cursor glow effect =====
+    const glow = document.getElementById('cursorGlow');
+    document.addEventListener('mousemove', (e) => {
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+    });
+
+    // ===== Fetch health data on load =====
+    async function loadHealth() {
+      try {
+        const res = await fetch('/health');
+        const data = await res.json();
+        document.getElementById('serverStatus').textContent = data.status;
+        document.getElementById('serverUptime').textContent = formatUptime(data.uptime);
+        document.getElementById('serverTimestamp').textContent = new Date(data.timestamp).toLocaleString();
+      } catch {
+        document.getElementById('serverStatus').textContent = 'DOWN';
+        document.getElementById('serverStatus').style.color = '#ef4444';
+      }
+    }
+
+    function formatUptime(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      return `${h}h ${m}m ${s}s`;
+    }
+
+    // ===== Refresh health every 5 seconds =====
+    loadHealth();
+    setInterval(loadHealth, 5000);
+
+    // ===== Interactive buttons =====
+    async function checkHealth() {
+      try {
+        const res = await fetch('/health');
+        const data = await res.json();
+        showModal('🩺 Health Check Response', JSON.stringify(data, null, 2));
+      } catch (err) {
+        showModal('❌ Error', err.message);
+      }
+    }
+
+    async function fetchAPI() {
+      try {
+        const res = await fetch('/api/antigravity');
+        const data = await res.json();
+        showModal('🔌 API Response — /api/antigravity', JSON.stringify(data, null, 2));
+      } catch (err) {
+        showModal('❌ Error', err.message);
+      }
+    }
+
+    function showModal(title, body) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').textContent = body;
+      const modal = document.getElementById('modal');
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+  </script>
+</body>
+</html>
